@@ -19,9 +19,9 @@ class CreateUsersTable extends Migration
             $table->string('email');
             $table->string('password');
             $table->string('phone');
-            $table->string('avatar');
+            $table->string('avatar')->nullable();
             $table->enum('status', ['Active', 'Non Active']);
-            $table->string('api_token');
+            $table->string('api_token')->nullable();
             $table->timestamps();
         });
     }

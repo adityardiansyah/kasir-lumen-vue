@@ -20,9 +20,9 @@ class CreateProductsTable extends Migration
             $table->string('name');
             $table->double('price_buy');
             $table->double('price_sell');
-            $table->double('fee_reseller');
+            $table->double('fee_reseller')->nullable();
             $table->integer('stock');
-            $table->string('image');
+            $table->text('image')->nullable();
             $table->timestamps();
         });
     }

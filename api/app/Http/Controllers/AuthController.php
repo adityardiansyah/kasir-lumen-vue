@@ -8,16 +8,25 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends Controller
 {
     public function login(Request $request)
     {
-        $this->validate($request, [
-            'email' => 'required|max:225',
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|max:225|email:rfc,dns',
             'password' => 'required|min:6'
+        ], [
+            'email.required' => 'Email is not empty!',
+            'email.email' => 'Insert your real email!',
+            'password.required' => 'Password is not empty!',
+            'password.min' => 'Insert min 6 character !',
         ]);
+        if ($validator->fails()) {
+            return GlobalHelper::return_response(false, 'Validated', $validator->errors(), Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
 
         $user = User::where('email', $request->input('email'))->first();
         if(!$user){

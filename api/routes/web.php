@@ -11,5 +11,8 @@ $router->get('/products[/{id}]', 'ProductController@show');
 $router->post('/store', 'StoreController@store');
 
 $router->post('/category', 'CategoryController@store');
+$router->delete('/category[/{id}]', 'CategoryController@destroy');
 
 $router->post('/token-store', 'StoreController@create_token');
+
+$router->post('/cart', 'CartController@store');

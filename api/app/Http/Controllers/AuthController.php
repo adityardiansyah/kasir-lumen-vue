@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\GlobalHelper;
+use App\Models\Store;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -34,6 +35,7 @@ class AuthController extends Controller
         }
         if(Hash::check($request->input('password'), $user->password)){
             $user->update(['api_token' => GlobalHelper::generateRandomString(80)]);
+            $user->haveStore = $this->checkStore($user->id);
             return GlobalHelper::return_response(true, 'Login Success', $user);
         }else{
             return GlobalHelper::return_response(false, 'Login Failed, Password wrong!', '', Response::HTTP_NOT_FOUND);
@@ -66,12 +68,34 @@ class AuthController extends Controller
 
     }
 
-    public function return_response($status=true, $msg='', $data='', $code=200)
+    public function checkStore($user)
     {
-        return response()->json([
-            'message' => $msg,
-            'success' => $status,
-            'data' => $data
-        ], $code);
+        $store = Store::where('user_id', $user)->first();
+        if(empty($store)){
+            $data = 'FALSE';
+        }else{
+            $data = 'TRUE';
+        }
+        return $data;
+    }
+
+    public function logout(Request $request)
+    {
+        $token_user = GlobalHelper::get_user($request->header('Authorization'));
+        $token_store = GlobalHelper::get_store($request->header('Store'));
+
+        $user = User::where('api_token', $token_user->api_token)->first();
+        $store = Store::where('token', $token_store->token)->first();
+
+        if(!empty($user) && !empty($store)){
+            $user->api_token = null;
+            $user->save();
+            $store->token = null;
+            $store->save();
+
+            return GlobalHelper::return_response(true, 'Logout Success!', '');
+        }else{
+            return GlobalHelper::return_response(false, 'Logout Failed!','', Response::HTTP_UNAUTHORIZED);
+        }
     }
 }

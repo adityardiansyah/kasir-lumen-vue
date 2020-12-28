@@ -28,7 +28,8 @@ class StoreController extends Controller
                 'user_id' => $this->user->id, 
                 'name' => $request->input('name'),
                 'phone' => $request->input('phone'),
-                'address' => $request->input('address')
+                'address' => $request->input('address'),
+                'token' => GlobalHelper::generateRandomString(40)
             ]);
             return GlobalHelper::return_response(true, 'Store Success Created', $data);
         } catch (\Throwable $th) {
@@ -43,6 +44,16 @@ class StoreController extends Controller
             $check->token = GlobalHelper::generateRandomString(40);
             $check->save();
             return GlobalHelper::return_response(true, 'Store Found, Token Updated!', $check);
+        }else{
+            return GlobalHelper::return_response(false, 'Store Not Found!', '', Response::HTTP_NOT_FOUND);
+        }
+    }
+
+    public function get_store(Request $request)
+    {
+        $store = Store::where('user_id', $this->user->id)->get();
+        if(!empty($store)){
+            return GlobalHelper::return_response(true, 'Store Found', $store);
         }else{
             return GlobalHelper::return_response(false, 'Store Not Found!', '', Response::HTTP_NOT_FOUND);
         }

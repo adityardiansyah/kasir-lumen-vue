@@ -18,14 +18,17 @@ class ProductController extends Controller
         $this->store = GlobalHelper::get_store($request->header('Store'));
     }
 
-    public function show($id='')
+    public function show($id='', Request $request)
     {
         try{
             $product = Product::where('store_id', $this->store->id)->latest();
+            if(!empty($request->search)){
+                $product = $product->where('name','LIKE','%'.$request->search.'%');
+            }
             if($id){
                 $product = $product->where('id',$id);
             }
-            $product = $product->get();
+            $product = $product->paginate(20);
             return GlobalHelper::return_response(true, 'Data ditemukan!', $product);
         }catch(\Exception $e){
             return GlobalHelper::return_response(false, 'Data tidak ditemukan!', $e->getMessage(), Response::HTTP_NOT_FOUND);

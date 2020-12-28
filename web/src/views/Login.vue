@@ -69,11 +69,10 @@ export default {
                 akun
             )
             .then((res) => {
-                console.log(res.data.data);
+                // console.log(res.data.data);
                 localStorage.setItem('user', JSON.stringify(res.data.data));
-                localStorage.setItem('token', JSON.stringify(res.data.data.api_token));
                 
-                if(localStorage.getItem('token') != null){
+                if(localStorage.getItem('user') != null){
                     router.push({
                         name: 'index'
                     })

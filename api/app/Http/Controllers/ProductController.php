@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helpers\GlobalHelper;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpFoundation\Response;
 
 class ProductController extends Controller
@@ -37,7 +38,7 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
-        $this->validate($request, [
+        $validator = Validator::make($request, [
             'category_id' => 'required',
             'name' => 'required',
             'price_buy' => 'required',
@@ -45,6 +46,10 @@ class ProductController extends Controller
             'stock' => 'required',
             'image' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
+        if ($validator->fails()) {
+            return GlobalHelper::return_response(false, 'Validated', $validator->errors(), Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
         try {
             $path = '';
             if ($request->hasFile('image')) {

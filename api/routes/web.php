@@ -19,4 +19,7 @@ $router->post('/token-store', 'StoreController@create_token');
 $router->post('/cart', 'CartController@store');
 $router->get('/cart', 'CartController@show');
 $router->put('/cart', 'CartController@update');
+
+$router->post('/checkout', 'TransactionController@store');
+
 $router->get('/logout', 'AuthController@logout');

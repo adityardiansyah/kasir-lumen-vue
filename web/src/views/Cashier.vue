@@ -14,7 +14,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="card mt-2">
+                <div class="card mt-2 mb-2">
                     <div class="card-body">
                         <table class="table table-hover">
                             <thead>
@@ -91,16 +91,52 @@
                     </div>
                     <hr>
                     <div class="card-body">
-                        <table class="table">
-                            <tr>
-                                <td colspan="2">
-                                    <b>Total</b>
-                                </td>
-                                <td style="text-align:right;">
-                                    <b>Rp. {{ uang(total_cart) }}</b>
-                                </td>
-                            </tr>
-                        </table>
+                        <form @submit.prevent="checkout()">
+                            <table class="table">
+                                <tr>
+                                    <td colspan="2">
+                                        <b>Sub Total :</b>
+                                    </td>
+                                    <td style="text-align:right;">
+                                        <b>Rp. {{ uang(sub_total_cart) }}</b>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">
+                                        <b>Fee Reseller :</b>
+                                    </td>
+                                    <td style="text-align:right;">
+                                        <b>Rp. {{ uang(fee) }}</b>
+                                    </td>
+                                </tr>
+                                 <tr>
+                                    <td colspan="2">
+                                        <b>Total :</b>
+                                    </td>
+                                    <td style="text-align:right;">
+                                        <b>Rp. {{ uang(total_cart) }}</b>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">
+                                        <b>
+                                        Dibayar :
+                                        </b>
+                                    </td>
+                                    <td>
+                                        <input type="number" class="input-payment form-control form-control-sm mt-2" v-model="pay.payment">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3">
+                                        <button type="submit" class="btn btn-sm btn-outline-primary pull-right mt-2">
+                                            <i class="fa fa-money"></i>
+                                            BAYAR
+                                        </button>
+                                    </td>
+                                </tr>
+                            </table>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -112,7 +148,7 @@
 import uang from '../lib/script.js'
 import Navbar from './partials/Navbar.vue'
 import axios from 'axios'
-import { onMounted, ref, toRef } from 'vue'
+import { onMounted, ref, toRef, reactive } from 'vue'
 
 
 var user = JSON.parse(localStorage.getItem('user'));
@@ -127,7 +163,11 @@ export default {
         search: '',
         pagination: {},
         carts: [],
-        total_cart: 0
+        sub_total_cart: 0,
+        total_cart: 0,
+        fee: 0,
+        pay: {},
+        payment: ''
     }),
     components: {
         Navbar
@@ -201,7 +241,12 @@ export default {
                     return a + b.sub_total;
                 }, 0)
                 this.carts = res.data.data
-                this.total_cart = sum
+                this.sub_total_cart = sum
+                let sum_fee = total.reduce((a,b) => {
+                    return a + b.fee_reseller;
+                },0)
+                this.fee = sum_fee
+                this.total_cart = sum_fee + sum
             })
             .catch((err) => {
                 console.log(err.response);
@@ -218,7 +263,7 @@ export default {
             )
             .then((res) => {
                 this.getCart()
-                console.log(res.data);
+                this.getItems()
             })
             .catch((err) => {
                 console.log(err.response);
@@ -227,10 +272,36 @@ export default {
         uang: function(rp){
             return uang.formatRupiah(rp)
         },
+        checkout: function(){
+            let payments = {
+                customer_id: 1,
+                invoice: 'INV-'+Math.floor(Math.random() * 100000),
+                total: this.total_cart,
+                list_data: JSON.stringify(this.carts),
+                payment: this.payment
+            }
+            axios.post('http://127.0.0.1:8000/checkout', payments, 
+            {
+                headers:{
+                    'Authorization': 'Bearer '+user.api_token,
+                    'Store': token_store.token
+                }
+            }
+            )
+            .then((res) => {
+                console.log(res.data);
+            })
+            .catch((err) => {
+                console.log(err.response);
+            })
+        }
     },
 }
 </script>
 
 <style>
-
+.input-payment{
+    border: none;
+    border-bottom: 1px solid #d9d9d9;
+}
 </style>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helpers\GlobalHelper;
 use App\Models\Cart;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
@@ -45,12 +46,19 @@ class CartController extends Controller
     public function update(Request $request)
     {
         $check = Cart::where('id', $request->input('id'))->where('store_id', $this->store->id)->firstOrFail();
+        $product = Product::where('id', $check->product_id)->firstOrFail();
         if ($request->input('type') == 'plus') {
+            $product = $product->update([
+                'stock' => $product->stock - 1
+            ]);
             $check = $check->update([
                 'qty' => $check->qty + 1
             ]);
             return GlobalHelper::return_response(true, 'Cart Success Updated', $check);
         } else {
+            $product = $product->update([
+                'stock' => $product->stock + 1
+            ]);
             $check = $check->update([
                 'qty' => $check->qty - 1
             ]);
@@ -61,7 +69,7 @@ class CartController extends Controller
     public function show()
     {
         try {
-            $data = Cart::select('carts.*','products.name','products.price_sell', DB::raw('(products.price_sell * carts.qty) as sub_total'))
+            $data = Cart::select('carts.*','products.name','products.price_sell', 'products.fee_reseller', DB::raw('(products.price_sell * carts.qty) as sub_total'))
             ->leftJoin('products','products.id','carts.product_id')
             ->where('carts.store_id', $this->store->id)->get();
             return GlobalHelper::return_response(true, 'Get Cart Success', $data);

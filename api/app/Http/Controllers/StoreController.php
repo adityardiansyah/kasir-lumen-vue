@@ -6,6 +6,7 @@ use App\Helpers\GlobalHelper;
 use App\Models\Store;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpFoundation\Response;
 
 class StoreController extends Controller
@@ -20,9 +21,12 @@ class StoreController extends Controller
 
     public function store(Request $request)
     {
-        $this->validate($request, [
+        $validator = Validator::make($request, [
             'name' => 'required',
         ]);
+        if ($validator->fails()) {
+            return GlobalHelper::return_response(false, 'Validated', $validator->errors(), Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
         try {
             $data = Store::create([
                 'user_id' => $this->user->id, 

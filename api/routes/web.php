@@ -17,4 +17,6 @@ $router->delete('/category[/{id}]', 'CategoryController@destroy');
 $router->post('/token-store', 'StoreController@create_token');
 
 $router->post('/cart', 'CartController@store');
+$router->get('/cart', 'CartController@show');
+$router->put('/cart', 'CartController@update');
 $router->get('/logout', 'AuthController@logout');

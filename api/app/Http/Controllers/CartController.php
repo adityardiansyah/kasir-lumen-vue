@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helpers\GlobalHelper;
 use App\Models\Cart;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 
 class CartController extends Controller
@@ -21,23 +22,18 @@ class CartController extends Controller
 
     public function store(Request $request)
     {
-        $this->validate($request, [
-            'product_id' => 'required',
-            'qty' => 'required',
-        ]);
-
         try {
             $check = Cart::where('product_id', $request->input('product_id'))->where('store_id', $this->user->id)->first();
             if(!$check){
                 $data = Cart::create([
-                    'store_id' => $this->user->id,
+                    'store_id' => $this->store->id,
                     'product_id' => $request->input('product_id'),
-                    'qty' => $request->input('qty')
+                    'qty' => 1
                 ]); 
                 return GlobalHelper::return_response(true, 'Cart Success Inserted', $data);
             }else{
                 $check = $check->update([
-                    'qty' => $check->qty + $request->input('qty')
+                    'qty' => $check->qty + 1
                 ]);
                 return GlobalHelper::return_response(true, 'Cart Success Inserted', $check);
             }
@@ -46,8 +42,32 @@ class CartController extends Controller
         }
     }
 
-    public function update(Type $var = null)
+    public function update(Request $request)
     {
-        # code...
+        $check = Cart::where('id', $request->input('id'))->where('store_id', $this->store->id)->firstOrFail();
+        if ($request->input('type') == 'plus') {
+            $check = $check->update([
+                'qty' => $check->qty + 1
+            ]);
+            return GlobalHelper::return_response(true, 'Cart Success Updated', $check);
+        } else {
+            $check = $check->update([
+                'qty' => $check->qty - 1
+            ]);
+            return GlobalHelper::return_response(true, 'Cart Success Updated', $check);
+        }
+    }
+
+    public function show()
+    {
+        try {
+            $data = Cart::select('carts.*','products.name','products.price_sell', DB::raw('(products.price_sell * carts.qty) as sub_total'))
+            ->leftJoin('products','products.id','carts.product_id')
+            ->where('carts.store_id', $this->store->id)->get();
+            return GlobalHelper::return_response(true, 'Get Cart Success', $data);
+            
+        } catch (\Throwable $th) {
+            return GlobalHelper::return_response(false, 'Get Cart Failed', $th->getMessage(), Response::HTTP_NOT_FOUND);
+        }
     }
 }

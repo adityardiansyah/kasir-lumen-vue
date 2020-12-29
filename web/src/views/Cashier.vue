@@ -21,6 +21,7 @@
                                 <tr>
                                     <th>No</th>
                                     <th>Nama Barang</th>
+                                    <th>Harga</th>
                                     <th>Stok</th>
                                     <th>Action</th>
                                 </tr>
@@ -29,6 +30,7 @@
                                 <tr v-for="(item, index) in items.data">
                                     <td>{{ index+1 }}</td>
                                     <td>{{ item.name }}</td>
+                                    <td>{{ uang(item.price_sell) }}</td>
                                     <td>{{ item.stock }}</td>
                                     <td>
                                         <button class="btn btn-sm btn-primary" v-on:click="addCart(item.id)">
@@ -60,11 +62,45 @@
                         Keranjang
                     </h6>
                     <div class="card-body">
-
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Nama Barang</th>
+                                    <th>Qty</th>
+                                    <th>Harga</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(cart, index) in carts">
+                                    <td>{{ index+1 }}</td>
+                                    <td>{{ cart.name }}</td>
+                                    <td>
+                                        <button class="btn btn-sm" v-on:click="update(cart.id, 'minus')">
+                                            <i class="fa fa-minus"></i>
+                                        </button>
+                                        {{ cart.qty }}
+                                        <button class="btn btn-sm" v-on:click="update(cart.id, 'plus')">
+                                            <i class="fa fa-plus"></i>
+                                        </button>
+                                    </td>
+                                    <td>{{ uang(cart.sub_total) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                     <hr>
                     <div class="card-body">
-
+                        <table class="table">
+                            <tr>
+                                <td colspan="2">
+                                    <b>Total</b>
+                                </td>
+                                <td style="text-align:right;">
+                                    <b>Rp. {{ uang(total_cart) }}</b>
+                                </td>
+                            </tr>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -73,6 +109,7 @@
 </div>
 </template>
 <script>
+import uang from '../lib/script.js'
 import Navbar from './partials/Navbar.vue'
 import axios from 'axios'
 import { onMounted, ref, toRef } from 'vue'
@@ -83,11 +120,14 @@ var token_store = JSON.parse(localStorage.getItem('store'));
 export default {
     mounted(){
         this.getItems()
+        this.getCart()
     },
     data: () => ({
         items: [],
         search: '',
-        pagination: {}
+        pagination: {},
+        carts: [],
+        total_cart: 0
     }),
     components: {
         Navbar
@@ -132,8 +172,61 @@ export default {
                 prev_page_url: data.prev_page_url
             }
             this.pagination = pag
-            console.log(pag);
-        }
+        },
+        addCart: function(id) {
+            axios.post('http://127.0.0.1:8000/cart', {product_id: id},
+                {
+                    headers:{
+                        'Authorization': 'Bearer '+user.api_token,
+                        'Store': token_store.token
+                    }
+                }
+            )
+            .then((res) => {
+                this.getCart()
+            })
+            .catch((req) => {
+                console.log(req);
+            })
+        },
+        getCart: function(){
+            axios.get('http://127.0.0.1:8000/cart', {
+                headers:{
+                    'Authorization': 'Bearer '+user.api_token,
+                    'Store': token_store.token
+                }
+            }).then((res) => {
+                const total = res.data.data
+                let sum = total.reduce((a,b) => {
+                    return a + b.sub_total;
+                }, 0)
+                this.carts = res.data.data
+                this.total_cart = sum
+            })
+            .catch((err) => {
+                console.log(err.response);
+            })
+        },
+        update: function(id, type) {
+            axios.put('http://127.0.0.1:8000/cart', {id: id, type: type},
+                {
+                    headers:{
+                        'Authorization': 'Bearer '+user.api_token,
+                        'Store': token_store.token
+                    }
+                }
+            )
+            .then((res) => {
+                this.getCart()
+                console.log(res.data);
+            })
+            .catch((err) => {
+                console.log(err.response);
+            })
+        },
+        uang: function(rp){
+            return uang.formatRupiah(rp)
+        },
     },
 }
 </script>

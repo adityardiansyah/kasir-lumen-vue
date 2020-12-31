@@ -1,4 +1,4 @@
-function formatRupiah(angka, prefix){
+function formatRupiah(angka){
     let bilangan = angka;
     let	reverse = bilangan.toString().split('').reverse().join(''),
     ribuan 	= reverse.match(/\d{1,3}/g);
@@ -6,4 +6,13 @@ function formatRupiah(angka, prefix){
     return ribuan;  
 }
 
-export default {formatRupiah}
+function currency(value, separator) {
+    if (typeof value == "undefined") return "0";
+    if (typeof separator == "undefined" || !separator) separator = ",";
+ 
+    return value.toString()
+                .replace(/[^\d]+/g, "")
+                .replace(/\B(?=(?:\d{3})+(?!\d))/g, separator);
+}
+
+export default {formatRupiah, currency}

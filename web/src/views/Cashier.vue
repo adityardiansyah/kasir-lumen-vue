@@ -109,7 +109,7 @@
                                         <b>Rp. {{ uang(fee) }}</b>
                                     </td>
                                 </tr>
-                                 <tr>
+                                <tr>
                                     <td colspan="2">
                                         <b>Total :</b>
                                     </td>
@@ -124,7 +124,15 @@
                                         </b>
                                     </td>
                                     <td>
-                                        <input type="number" class="input-payment form-control form-control-sm mt-2" v-model="pay.payment">
+                                        <input type="text" class="input-payment form-control form-control-sm mt-2" v-model="payment" @keyup="countCashback">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">
+                                        <b>Kembalian :</b>
+                                    </td>
+                                    <td style="text-align:right;">
+                                        <b>Rp. {{ cashback }}</b>
                                     </td>
                                 </tr>
                                 <tr>
@@ -153,6 +161,11 @@ import { onMounted, ref, toRef, reactive } from 'vue'
 
 var user = JSON.parse(localStorage.getItem('user'));
 var token_store = JSON.parse(localStorage.getItem('store'));
+var header = {
+    'Authorization': 'Bearer '+user.api_token,
+    'Store': token_store.token
+};
+
 export default {
     mounted(){
         this.getItems()
@@ -167,7 +180,8 @@ export default {
         total_cart: 0,
         fee: 0,
         pay: {},
-        payment: ''
+        payment: '',
+        cashback:0
     }),
     components: {
         Navbar
@@ -176,6 +190,10 @@ export default {
         this.getItems()
     },
     methods: {
+        countCashback: function(){
+            this.payment = uang.currency(this.payment, '.') 
+            this.cashback = this.payment.split('.').join('') - this.total_cart
+        },
         getResult: function(page_url){
             this.getItems(this.search, page_url)
         },
@@ -187,10 +205,7 @@ export default {
             axios.get(
                 page_url,
                 {
-                    headers: {
-                        'Authorization': 'Bearer '+user.api_token,
-                        'Store': token_store.token
-                    },
+                    headers: header,
                     params:{
                         search: query
                     }
@@ -214,15 +229,9 @@ export default {
             this.pagination = pag
         },
         addCart: function(id) {
-            axios.post('http://127.0.0.1:8000/cart', {product_id: id},
-                {
-                    headers:{
-                        'Authorization': 'Bearer '+user.api_token,
-                        'Store': token_store.token
-                    }
-                }
-            )
+            axios.post('http://127.0.0.1:8000/cart', {product_id: id}, { headers: header })
             .then((res) => {
+                this.getItems()
                 this.getCart()
             })
             .catch((req) => {
@@ -230,12 +239,7 @@ export default {
             })
         },
         getCart: function(){
-            axios.get('http://127.0.0.1:8000/cart', {
-                headers:{
-                    'Authorization': 'Bearer '+user.api_token,
-                    'Store': token_store.token
-                }
-            }).then((res) => {
+            axios.get('http://127.0.0.1:8000/cart', {headers: header}).then((res) => {
                 const total = res.data.data
                 let sum = total.reduce((a,b) => {
                     return a + b.sub_total;
@@ -253,14 +257,7 @@ export default {
             })
         },
         update: function(id, type) {
-            axios.put('http://127.0.0.1:8000/cart', {id: id, type: type},
-                {
-                    headers:{
-                        'Authorization': 'Bearer '+user.api_token,
-                        'Store': token_store.token
-                    }
-                }
-            )
+            axios.put('http://127.0.0.1:8000/cart', {id: id, type: type}, { headers: header })
             .then((res) => {
                 this.getCart()
                 this.getItems()
@@ -280,14 +277,7 @@ export default {
                 list_data: JSON.stringify(this.carts),
                 payment: this.payment
             }
-            axios.post('http://127.0.0.1:8000/checkout', payments, 
-            {
-                headers:{
-                    'Authorization': 'Bearer '+user.api_token,
-                    'Store': token_store.token
-                }
-            }
-            )
+            axios.post('http://127.0.0.1:8000/checkout', payments, {headers:header})
             .then((res) => {
                 console.log(res.data);
             })
@@ -302,6 +292,6 @@ export default {
 <style>
 .input-payment{
     border: none;
-    border-bottom: 1px solid #d9d9d9;
+    border-bottom: 1px solid #d9d9d9!important;
 }
 </style>

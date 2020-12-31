@@ -24,13 +24,17 @@ class CartController extends Controller
     public function store(Request $request)
     {
         try {
-            $check = Cart::where('product_id', $request->input('product_id'))->where('store_id', $this->user->id)->first();
+            $check = Cart::where('product_id', $request->input('product_id'))->where('store_id', $this->store->id)->first();
+            $product = Product::where('id', $request->input('product_id'))->first();
+            $product = $product->update([
+                'stock' => $product->stock - 1
+            ]);
             if(!$check){
                 $data = Cart::create([
                     'store_id' => $this->store->id,
                     'product_id' => $request->input('product_id'),
                     'qty' => 1
-                ]); 
+                ]);
                 return GlobalHelper::return_response(true, 'Cart Success Inserted', $data);
             }else{
                 $check = $check->update([
@@ -59,9 +63,13 @@ class CartController extends Controller
             $product = $product->update([
                 'stock' => $product->stock + 1
             ]);
-            $check = $check->update([
-                'qty' => $check->qty - 1
-            ]);
+            if($check->qty == 1){
+                $check = $check->delete();
+            }else{
+                $check = $check->update([
+                    'qty' => $check->qty - 1
+                ]);
+            }
             return GlobalHelper::return_response(true, 'Cart Success Updated', $check);
         }
     }

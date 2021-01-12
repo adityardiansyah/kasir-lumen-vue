@@ -55,7 +55,7 @@ class CartController extends Controller
             $product = $product->update([
                 'stock' => $product->stock - 1
             ]);
-            $check = $check->update([
+            $data = $check->update([
                 'qty' => $check->qty + 1
             ]);
             return GlobalHelper::return_response(true, 'Cart Success Updated', $check);
@@ -64,9 +64,9 @@ class CartController extends Controller
                 'stock' => $product->stock + 1
             ]);
             if($check->qty == 1){
-                $check = $check->delete();
+                $data = $check->delete();
             }else{
-                $check = $check->update([
+                $data = $check->update([
                     'qty' => $check->qty - 1
                 ]);
             }

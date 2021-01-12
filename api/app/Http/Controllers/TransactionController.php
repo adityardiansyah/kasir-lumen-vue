@@ -35,7 +35,10 @@ class TransactionController extends Controller
                 'store_id' => $this->store->id,
                 'customer_id' => $request->customer_id,
                 'invoice' => $request->invoice,
-                'total' => $request->total
+                'total' => $request->total,
+                'fee_reseller' => $request->fee_reseller,
+                'payment' => $request->payment,
+                'cashback' => $request->cashback,
             ]);
             DetailOrder::create([
                 'order_id' => $data->id,

@@ -124,7 +124,7 @@
                                         </b>
                                     </td>
                                     <td>
-                                        <input type="text" class="input-payment form-control form-control-sm mt-2" v-model="payment" @keyup="countCashback">
+                                        <input type="text" class="input-payment form-control form-control-sm mt-2" style="text-align: right; " v-model="payment" @keyup="countCashback">
                                     </td>
                                 </tr>
                                 <tr>
@@ -232,34 +232,36 @@ export default {
             axios.post('http://127.0.0.1:8000/cart', {product_id: id}, { headers: header })
             .then((res) => {
                 this.getItems()
-                this.getCart()
+                this.getCart("plus",id)
             })
             .catch((req) => {
                 console.log(req);
             })
         },
-        getCart: function(){
+        getCart: function(type = '', id = ''){
             axios.get('http://127.0.0.1:8000/cart', {headers: header}).then((res) => {
                 const total = res.data.data
+                if(total.length === 0){
+                    this.cashback
+                }
                 let sum = total.reduce((a,b) => {
                     return a + b.sub_total;
                 }, 0)
                 this.carts = res.data.data
                 this.sub_total_cart = sum
-                let sum_fee = total.reduce((a,b) => {
-                    return a + b.fee_reseller;
-                },0)
-                this.fee = sum_fee
-                this.total_cart = sum_fee + sum
+                this.fee = total.reduce((a,b) => {
+                    return a + (b.fee_reseller * b.qty)
+                }, 0)
+                this.total_cart = sum + this.fee
             })
             .catch((err) => {
-                console.log(err.response);
+                console.log(err);
             })
         },
         update: function(id, type) {
             axios.put('http://127.0.0.1:8000/cart', {id: id, type: type}, { headers: header })
             .then((res) => {
-                this.getCart()
+                this.getCart(type, res.data.data.product_id)
                 this.getItems()
             })
             .catch((err) => {
@@ -275,7 +277,9 @@ export default {
                 invoice: 'INV-'+Math.floor(Math.random() * 100000),
                 total: this.total_cart,
                 list_data: JSON.stringify(this.carts),
-                payment: this.payment
+                payment: this.payment,
+                fee_reseller: this.fee,
+                cashback: this.cashback,
             }
             axios.post('http://127.0.0.1:8000/checkout', payments, {headers:header})
             .then((res) => {

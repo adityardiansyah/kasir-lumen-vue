@@ -15,4 +15,5 @@ function currency(value, separator) {
                 .replace(/\B(?=(?:\d{3})+(?!\d))/g, separator);
 }
 
+
 export default {formatRupiah, currency}

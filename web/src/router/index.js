@@ -15,7 +15,8 @@ const routes = [
         name: 'cashier',
         component: () => import("../views/Cashier.vue"),
         meta: {
-            requiresAuth: true
+            requiresAuth: true,
+            checkStore: true
         }
     },
     {
@@ -35,7 +36,7 @@ const routes = [
         }
     },
     {
-        path: '/invoice',
+        path: '/invoice/:invoice',
         name: 'invoice',
         component: () => import("../views/Invoice.vue"),
         meta: {
@@ -56,16 +57,6 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
     let user = JSON.parse(localStorage.getItem('user'))
-    if(to.matched.some(record => record.meta.checkStore)) {
-        console.log(user.haveStore);
-        if(user.haveStore == 'FALSE'){
-            next({ name: 'create-store'})
-        }
-        else{
-            next()
-        }
-    }
-
     if(to.matched.some(record => record.meta.requiresAuth)) {
         if (localStorage.getItem('user') == null) {
             next({
@@ -79,6 +70,18 @@ router.beforeEach((to, from, next) => {
     } else {
         next()
     }
+    if(to.matched.some(record => record.meta.checkStore)) {
+        // console.log(user.haveStore);
+        if(user.haveStore == 'FALSE'){
+            next({ name: 'create-store'})
+        }
+        else{
+            next()
+        }
+    }
+    
+
+    
 })
 
 export {router}

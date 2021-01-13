@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\GlobalHelper;
+use App\Models\Cart;
 use App\Models\DetailOrder;
 use App\Models\Order;
 use Illuminate\Http\Request;
@@ -44,9 +45,26 @@ class TransactionController extends Controller
                 'order_id' => $data->id,
                 'list_order' => $request->list_data
             ]);
+
+            Cart::where('store_id', $this->store->id)->delete();
             return GlobalHelper::return_response(true, 'Order success inserted', $data);
         } catch (\Throwable $th) {
             return GlobalHelper::return_response(false, 'Order failed inserted', $th->getMessage(), Response::HTTP_NOT_IMPLEMENTED);
+        }
+    }
+
+    public function show($invoice)
+    {
+        try {
+            $data = Order::select('orders.*', 'order_details.list_order')
+            ->leftJoin('order_details', 'order_details.order_id', 'orders.id')
+            ->where('invoice',$invoice)
+            ->first();
+            $data->time = date('d-m-Y H:i:s', strtotime($data->created_at));
+            return GlobalHelper::return_response(true, 'Get Order success', $data);
+
+        } catch (\Throwable $th) {
+            return GlobalHelper::return_response(false, 'Get Order failed', $th->getMessage(), Response::HTTP_NOT_IMPLEMENTED);
         }
     }
 }

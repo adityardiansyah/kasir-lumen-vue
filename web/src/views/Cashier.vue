@@ -157,6 +157,7 @@ import uang from '../lib/script.js'
 import Navbar from './partials/Navbar.vue'
 import axios from 'axios'
 import { onMounted, ref, toRef, reactive } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 
 var user = JSON.parse(localStorage.getItem('user'));
@@ -165,6 +166,7 @@ var header = {
     'Authorization': 'Bearer '+user.api_token,
     'Store': token_store.token
 };
+
 
 export default {
     mounted(){
@@ -277,13 +279,18 @@ export default {
                 invoice: 'INV-'+Math.floor(Math.random() * 100000),
                 total: this.total_cart,
                 list_data: JSON.stringify(this.carts),
-                payment: this.payment,
+                payment: this.payment.split('.').join(''),
                 fee_reseller: this.fee,
                 cashback: this.cashback,
             }
             axios.post('http://127.0.0.1:8000/checkout', payments, {headers:header})
             .then((res) => {
-                console.log(res.data);
+                this.$router.push({
+                    name: 'invoice',
+                    params: { 
+                        invoice: res.data.data.invoice
+                    }
+                });
             })
             .catch((err) => {
                 console.log(err.response);

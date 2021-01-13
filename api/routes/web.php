@@ -21,5 +21,6 @@ $router->get('/cart', 'CartController@show');
 $router->put('/cart', 'CartController@update');
 
 $router->post('/checkout', 'TransactionController@store');
+$router->get('/order[/{invoice}]', 'TransactionController@show');
 
 $router->get('/logout', 'AuthController@logout');

@@ -68,7 +68,7 @@
             }
           })
           .then((res) => {
-            // console.log(res.data.data);
+            console.log(res.data.data);
             localStorage.setItem('store', JSON.stringify(res.data.data));
             router.push({
               name: 'cashier'

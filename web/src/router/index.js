@@ -22,7 +22,7 @@ const routes = [
     {
         path: '/add-product',
         name: 'add-product',
-        component: () => import("../views/Index.vue"),
+        component: () => import("../views/product/Add.vue"),
         meta: {
             requiresAuth: true
         }

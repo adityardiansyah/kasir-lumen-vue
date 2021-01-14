@@ -20,6 +20,16 @@ class CategoryController extends Controller
         $this->store = GlobalHelper::get_store($request->header('Store'));
     }
 
+    public function index()
+    {
+        try {
+            $data = Category::where('store_id', $this->store->id)->get();
+            return GlobalHelper::return_response(true, 'Get Category Success', $data);
+        } catch (\Throwable $th) {
+            return GlobalHelper::return_response(false, 'Category Failed Created', $th->getMessage(), Response::HTTP_NOT_FOUND);
+        }
+    }
+
     public function store(Request $request)
     {
         $this->validate($request, [

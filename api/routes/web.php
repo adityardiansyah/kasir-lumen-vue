@@ -11,6 +11,7 @@ $router->get('/products[/{id}]', 'ProductController@show');
 $router->post('/store', 'StoreController@store');
 $router->get('/store', 'StoreController@get_store');
 
+$router->get('/category', 'CategoryController@index');
 $router->post('/category', 'CategoryController@store');
 $router->delete('/category[/{id}]', 'CategoryController@destroy');
 

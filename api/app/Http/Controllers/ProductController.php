@@ -38,41 +38,40 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
-        $validator = Validator::make($request, [
+        $validator = Validator::make($request->all(), [
             'category_id' => 'required',
             'name' => 'required',
             'price_buy' => 'required',
             'price_sell' => 'required',
             'stock' => 'required',
-            'image' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-        ]);
-        if ($validator->fails()) {
-            return GlobalHelper::return_response(false, 'Validated', $validator->errors(), Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
-
+            // 'image' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            ]);
+            if ($validator->fails()) {
+                return GlobalHelper::return_response(false, 'Validated', $validator->errors(), Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
         try {
             $path = '';
-            if ($request->hasFile('image')) {
-                $original_filename = $request->file('image')->getClientOriginalName();
-                $original_filename_arr = explode('.', $original_filename);
-                $file_ext = end($original_filename_arr);
-                $destination_path = './product/';
-                $image = 'product-' . time() . '.' . $file_ext;
-
-                if ($request->file('image')->move($destination_path, $image)) {
-                    $path = '/product/' . $image;
-                }
-            }
-
+            // if ($request->hasFile('image')) {
+            //     $original_filename = $request->file('image')->getClientOriginalName();
+            //     $original_filename_arr = explode('.', $original_filename);
+            //     $file_ext = end($original_filename_arr);
+            //     $destination_path = './product/';
+            //     $image = 'product-' . time() . '.' . $file_ext;
+                
+            //     if ($request->file('image')->move($destination_path, $image)) {
+            //         $path = '/product/' . $image;
+            //     }
+            // }
+            // return $request->input('fee_reseller');
             $data = Product::create([
                 'store_id' => $this->store->id,
                 'category_id' => $request->input('category_id'),
                 'name' => $request->input('name'),
                 'price_buy' => $request->input('price_buy'),
                 'price_sell' => $request->input('price_sell'),
-                'fee_reseller' => $request->input('fee_reseller'),
+                'fee_reseller' => $request->input('fee_reseller') == null? 0: $request->input('fee_reseller'),
                 'stock' => $request->input('stock'),
-                'image' => $path
+                'image' => ''
             ]);
             return GlobalHelper::return_response(true, 'Store Success Created', $data);
         } catch (\Throwable $th) {
